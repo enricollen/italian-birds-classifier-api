@@ -37,11 +37,23 @@ def upload_image():
     img = request.files['image']
     img_preprocessed = image_preprocessing(img)
     predicted_species = compute_exact_prediction(img_preprocessed)
+    compute_probability_distribution(img_preprocessed)
+
+    if predicted_species == None:
+        return redirect(url_for('result', species="not_able_to_predict"))
     return redirect(url_for('result', species=predicted_species))
 
 @app.route('/result')
 def result():
     species = request.args.get('species')
+
+    if species == "not_able_to_predict":
+        return render_template('error.html')
+
+    species = species.replace("_"," ")
+    species = species[0].upper() + species[1:]
+    print("\nOne shot guess: the predicted species is " + species)
+
     return render_template('result.html', species=species)
 
 def load_classifier():
@@ -49,34 +61,43 @@ def load_classifier():
     model = models.load_model('./models/Fine_Tuning_New_Epochs_765432_80-05_1-63.h5', compile=False)
 
 
-def resize_image(image_path, max_width, max_height):
-    # Open the image file
-    image = Image.open(image_path)
+def resize_image(image_path, width, height):
+    with Image.open(image_path) as image:
+        # get the original image size
+        original_width, original_height = image.size
 
-    # Get the original size
-    width, height = image.size
+        # calculate the aspect ratios
+        width_ratio = 224 / original_width
+        height_ratio = 224 / original_height
 
-    # Calculate the new size while maintaining aspect ratio
-    if width <= max_width and height <= max_height:
-        # No need to resize if image is already smaller than the specified dimensions
-        return image
-    elif width > height:
-        # Landscape orientation
-        new_width = max_width
-        new_height = int(height / (width / max_width))
-    else:
-        # Portrait orientation or square
-        new_height = max_height
-        new_width = int(width / (height / max_height))
+        # find the smallest ratio to resize the image without stretching or squeezing it
+        resize_ratio = min(width_ratio, height_ratio)
 
-    # Resize the image with antialiasing
-    resized_image = image.resize((new_width, new_height), Image.ANTIALIAS)
+        # calculate the new image size
+        new_width = int(original_width * resize_ratio)
+        new_height = int(original_height * resize_ratio)
 
-    return resized_image
+        # resize the image
+        resized_image = image.resize((new_width, new_height), Image.ANTIALIAS)
+
+        # create a new blank image of the desired shape
+        final_image = Image.new('RGB', (224, 224))
+
+        # calculate the crop coordinates
+        left = (224 - new_width) // 2
+        top = (224 - new_height) // 2
+        right = left + new_width
+        bottom = top + new_height
+
+        # paste the resized image into the blank image
+        final_image.paste(resized_image, (left, top))
+
+        return final_image
+
 
 def image_preprocessing(image_path):
     img = resize_image(image_path, 224, 224)
-    #img = image.load_img(image_path, target_size=(224, 224))
+    # img = image.load_img(image_path, target_size=(224, 224))
     img_array = image.img_to_array(img)
     img_batch = np.expand_dims(img_array, axis=0)
     img_preprocessed = preprocess_input(img_batch)
@@ -85,7 +106,13 @@ def image_preprocessing(image_path):
 def compute_exact_prediction(img_preprocessed):
     global CLASSES, model
 
-    index_label = int(np.argmax(model.predict(img_preprocessed), axis=-1))
+    # One-shot prediction:
+    try:
+        index_label = int(np.argmax(model.predict(img_preprocessed), axis=-1))
+    except:
+        print("An error occurred while resizing the submitted image")
+        return
+
     label_name = CLASSES[index_label]
 
     return label_name
