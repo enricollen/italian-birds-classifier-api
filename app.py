@@ -94,24 +94,20 @@ first_run = True
 # Initialize the predictor model
 model = None
 
-UPLOAD_FOLDER = 'uploads'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
 
 @app.route('/')
 def home():
-    global first_run
-
-    if first_run:
-        load_classifier()
-        first_run = False
-
     return render_template('index.html')
 
 
 @app.route('/', methods=['POST'])
 def upload_image():
     img = request.files['image']
+
+    ALLOWED_EXTENSIONS = {'png', 'jpeg', 'jpg', 'tiff'}
+    if not allowed_file(img.filename, ALLOWED_EXTENSIONS):
+        return redirect(url_for('result', species="not_able_to_predict"))
+
     img_preprocessed = image_preprocessing(img)
     predicted_species = compute_exact_prediction(img_preprocessed)
     compute_probability_distribution(img_preprocessed)
@@ -128,7 +124,7 @@ def result():
     if species == "not_able_to_predict":
         return render_template('error.html')
 
-    species = species.replace("_"," ")
+    species = species.replace("_", " ")
     species = species[0].upper() + species[1:]
     print("\nOne shot guess: the predicted species is " + species)
 
@@ -138,6 +134,11 @@ def result():
 def load_classifier():
     global model
     model = models.load_model('./models/Fine_Tuning_New_Epochs_765432_80-05_1-63.h5', compile=False)
+
+
+def allowed_file(filename, allowed_extensions):
+    return '.' in filename and \
+        filename.rsplit('.', 1)[1].lower() in allowed_extensions
 
 
 def resize_image(image_path, width, height):
@@ -187,11 +188,7 @@ def compute_exact_prediction(img_preprocessed):
     global CLASSES, model
 
     # One-shot prediction:
-    try:
-        index_label = int(np.argmax(model.predict(img_preprocessed), axis=-1))
-    except:
-        print("An error occurred while resizing the submitted image")
-        return
+    index_label = int(np.argmax(model.predict(img_preprocessed), axis=-1))
 
     label_name = CLASSES[index_label]
 
@@ -217,6 +214,84 @@ def compute_probability_distribution(img_preprocessed):
     return
 
 
+# ----------------------------------------------- ONLY JSON REQUESTS BELOW ----------------------------------------------
+def compute_probability_distribution_json(img_preprocessed):
+    global model
+
+    # Prob Distribution of prediction
+    prediction = model.predict(img_preprocessed)
+    probabilities = np.fliplr(np.sort(prediction, axis=1)[:, -3:])
+    categories = np.fliplr(np.argsort(prediction, axis=1)[:, -3:])
+    probabilities = list(probabilities[0])
+    categories = list(categories[0])
+
+    species_probabilities = dict()
+    for index_label, prob in zip(categories, probabilities):
+        species = str(CLASSES[index_label]).replace("_", " ")
+        species = species[0].upper() + species[1:]
+        prob = round(float(prob), 5)
+        species_probabilities[species] = prob
+
+    return species_probabilities
+
+@app.route('/bird-prediction', methods=['POST'])
+def predict_bird():
+    # Get the file from the user request
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file in request'}), 400  # Bad Request
+
+    img_file = request.files['file']
+
+    # Check if the file has a valid extension
+    if img_file.filename == '':
+        return jsonify({'error': 'No file selected'}), 400  # Bad Request
+
+    ALLOWED_EXTENSIONS = {'png', 'jpeg', 'jpg', 'tiff'}
+    if not allowed_file(img_file.filename, ALLOWED_EXTENSIONS):
+        return jsonify({'error': 'Invalid file extension'}), 400  # Bad Request
+
+    # Apply logic to the image
+    img_preprocessed = image_preprocessing(img_file)
+    predicted_species = compute_exact_prediction(img_preprocessed)
+
+    if predicted_species == None:
+        return jsonify({'error': 'Prediction failed'}), 400  # Failed prediction
+
+    # Return the response
+    return jsonify({'predicted_species': predicted_species}), 200  # OK
+
+
+@app.route('/bird-probabilities-prediction', methods=['POST'])
+def predict_bird_probabilities():
+    # Get the file from the user request
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file in request'}), 400  # Bad Request
+
+    img_file = request.files['file']
+
+    # Check if the file has a valid extension
+    if img_file.filename == '':
+        return jsonify({'error': 'No file selected'}), 400  # Bad Request
+
+    ALLOWED_EXTENSIONS = {'png', 'jpeg', 'jpg', 'tiff'}
+    if not allowed_file(img_file.filename, ALLOWED_EXTENSIONS):
+        return jsonify({'error': 'Invalid file extension'}), 400  # Bad Request
+
+    # Apply logic to the image
+    img_preprocessed = image_preprocessing(img_file)
+    predicted_probabilities_dict = compute_probability_distribution_json(img_preprocessed)
+
+    if predicted_probabilities_dict == None:
+        return jsonify({'error': 'Prediction failed'}), 400  # Failed prediction
+
+    # Return the response
+    return jsonify({'predicted_species': predicted_probabilities_dict}), 200  # OK
+
+
 if __name__ == '__main__':
+
+    if first_run:
+        load_classifier()
+        first_run = False
 
     app.run(debug=False, host="0.0.0.0")
