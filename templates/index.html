@@ -1,12 +1,112 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Upload an Image</title>
+    <meta charset="UTF-8">
+	<link rel="icon" href="templates/static/bird.ico" type="image/x-icon">
+	<title>Italian Bird Recognizer</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+	<style>
+		body {
+			background-image: url("templates/static/background.webp");
+			background-repeat: repeat;
+			background-size: cover;
+			background-position: center center;
+		}
+		.center-div {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			height: 50vh;
+		}
+		.template-image {
+			max-width: 100%;
+			height: auto;
+			display: block;
+			margin-left: auto;
+			margin-right: auto;
+		}
+		.bottom-section {
+			margin-top: 50px;
+			margin-bottom: 50px;
+		}
+		@media (max-width: 576px) {
+			.center-div {
+				height: auto;
+			}
+			.bottom-section {
+				margin-top: 20px;
+				margin-bottom: 20px;
+			}
+			.template-image {
+				display: block;
+				margin-left: auto;
+				margin-right: auto;
+				margin-bottom: 10px;
+			}
+			.template-paragraph {
+				text-align: center;
+			}
+		}
+		.form-container {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			height: 30vh;
+			background-color: rgba(58, 143, 255, 0.281);
+			box-shadow: 0px 0px 20px #23deff80;
+			padding: 10px;
+			border-radius: 5px;
+			max-width: 50%;
+			margin: 0 auto;
+			border: none;
+			box-sizing: border-box;
+		}
+		@media (max-width: 576px) {
+			.form-container {
+				height: auto;
+			}
+		}
+		.title-container {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			margin-bottom: 20px;
+		}
+	</style>
 </head>
 <body>
-    <form method="POST" enctype="multipart/form-data">
-        <input type="file" name="image">
-        <button type="submit">Upload</button>
-    </form>
+	<div class="container">
+		<div class="row title-container">
+			<div class="col-md-12 text-center mt-5 mb-5">
+				<h1 class="text-white mb4">Italian Bird Recognizer</h1>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-8 offset-md-2 form-container">
+				<form method="POST" enctype="multipart/form-data">
+					<div class="form-group">
+						<label for="image" class="text-white">Select an image to upload:</label>
+						<input type="file" name="image" id="image" class="form-control-file" style="color: white">
+					</div>
+					<button type="submit" class="btn btn-primary">Upload</button>
+				</form>
+			</div>
+		</div>
+		<div class="row bottom-section">
+			<div class="col-md-6 text-center">
+				<img src="templates/static/template.webp" alt="template image" class="template-image">
+			</div>
+			<div class="col-md-6 template-paragraph">
+				<p class="text-white">L&apos;immagine a lato rappresenta un buon esempio da sottomettere al classificatore. 
+					Infatti, per ridurre al minimo la probabilit&agrave; di errore nella predizione della specie &egrave; consigliato caricare foto senza disturbi (rami,foglie, background confusionari),
+					 dove sia presente un singolo esemplare, possibilmente ripreso in sezione frontale o laterale. 
+					 L&apos;uso del modello &egrave; da intendersi come supporto alla classificazione di specie di volatili e pertanto &egrave; possibile che siano commessi degli errori.
+					 Dato l&apos;alto numero di specie possibili (387), attualmente il modello fatica a distinguere con esattezza tra specie appartenenti allo stesso genere ma diversa famiglia e tra esemplari di sesso diverso.
+					 Nota: le immagini caricate non vengono salvate in alcun modo.
+					 </p>
+			</div>
+		</div>
+	</div>
 </body>
 </html>
