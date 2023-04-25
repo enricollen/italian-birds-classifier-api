@@ -10,10 +10,10 @@
     <!-- Custom CSS -->
     <style>
         body {
-			background-image: url("templates/static/background.webp");
-			background-repeat: repeat;
-			background-size: cover;
-		}
+            background-image: url("templates/static/background.webp");
+            background-repeat: repeat;
+            background-size: cover;
+        }
         .card {
             background-color: rgba(255, 255, 255, 0.5);
         }
@@ -25,6 +25,11 @@
             text-transform: uppercase;
             letter-spacing: 0.2em;
         }
+        img {
+            max-width: 30%;
+            width: auto;
+            height: auto;
+        }
     </style>
 </head>
 <body>
@@ -32,7 +37,8 @@
         <h1 class="text-center mb-4">Prediction Result</h1>
         <div class="card">
             <div class="card-body text-center">
-                <p class="card-text">The name of the species should be <strong>{{ species }}</strong>.</p>
+                <img src="data:image/jpeg;base64,{{ image }}" alt="Uploaded Image" />
+                <p class="card-text">Il nome della specie &egrave; <strong>{{ species }}</strong> al <strong>{{ confidence }}</strong>&#37;.</p>
                 <form method="GET" action="/">
                     <button type="submit" class="btn btn-primary">Return to Home Page</button>
                 </form>

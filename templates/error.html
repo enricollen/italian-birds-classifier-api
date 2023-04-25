@@ -2,14 +2,74 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Error</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            margin: 0;
+        }
+        main {
+            padding: 20px;
+            text-align: center;
+        }
+        p {
+            margin: 20px 0;
+        }
+        form {
+            text-align: center;
+        }
+        button {
+            background-color: #4CAF50;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 10px 20px;
+        }
+        button:hover {
+            background-color: #3e8e41;
+        }
+        @media only screen and (max-width: 600px) {
+            header {
+                font-size: 24px;
+            }
+            h1 {
+                font-size: 36px;
+            }
+            main {
+                font-size: 18px;
+            }
+            button {
+                font-size: 14px;
+                padding: 8px 16px;
+            }
+        }
+    </style>
 </head>
 <body>
 
-  <p>An error occurred during prediction of the bird species. Please try upload another image [jpg, jpeg, png, tiff].</p>
-    <form method="GET" action="/">
-        <button type="submit">Return to Home Page</button>
-    </form>
+    <header>
+        <h1>Error</h1>
+    </header>
+
+    <main>
+        <p>An error occurred during prediction of the bird species.</p>
+        <p>Please try uploading another image in one of the following formats: jpg, jpeg, png, tiff.</p>
+        <form method="GET" action="/">
+            <button type="submit">Return to Home Page</button>
+        </form>
+    </main>
 
 </body>
 </html>
